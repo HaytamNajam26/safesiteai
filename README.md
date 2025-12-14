@@ -17,8 +17,8 @@ Application de gestion de sécurité sur les chantiers avec intelligence artific
 
 ### 1. Cloner le projet (si nécessaire)
 ```bash
-git clone <url-du-repo>
-cd projet-pfa
+git clone https://github.com/HaytamNajam26/safesiteai.git
+cd safesiteai
 ```
 
 ### 2. Lancer tous les services
