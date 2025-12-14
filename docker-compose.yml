@@ -1,0 +1,73 @@
+services:
+  # Base de données MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: safesite-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: safesite_db
+      MYSQL_USER: safesite_user
+      MYSQL_PASSWORD: safesite_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - safesite-network
+
+  # Backend Spring Boot
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: safesite-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/safesite_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: safesite_user
+      SPRING_DATASOURCE_PASSWORD: safesite_password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: safesite-secret-key-change-this-in-production-to-a-secure-random-string
+      JWT_EXPIRATION: 86400000
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - safesite-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/auth/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Flutter
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: safesite-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - safesite-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  safesite-network:
+    driver: bridge
+

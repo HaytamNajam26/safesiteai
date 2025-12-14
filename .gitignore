@@ -1,0 +1,28 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Build
+target/
+build/
+.dart_tool/
+.packages
+.pub/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.env.local
+
+# Database
+*.db
+*.sqlite
+
